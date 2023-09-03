@@ -1,0 +1,490 @@
+{
+	"info": {
+		"_postman_id": "ab6ebba0-6069-4a0b-88c2-b43c17d9cd52",
+		"name": "Dog CEO API",
+		"description": "Documentation: [https://dog.ceo/dog-api/documentation/](https://dog.ceo/dog-api/documentation/)\n\nA collection veryfing every endpoint from Dog CEO API. Currently testing mostly responses statuses codes. Coming with pre-request scripts and collection variables that allow to randomize requests.\n\nPotential issues:\n\n- in the last request randomNumber might ocasionally roll 0 and in such case always a single image from rolled sub-breed will be presented. Such case is not specified in the documentation, therefore I'm unable to say if it's a bug or a feature.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22478116"
+	},
+	"item": [
+		{
+			"name": "All breeds",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breeds/list/all",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breeds",
+						"list",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Random image",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breeds/image/random",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breeds",
+						"image",
+						"random"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Multiple random images",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"randomNumber\", (pm.variables.replaceIn('{{$randomInt}}')) % 51);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breeds/image/random/{{randomNumber}}",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breeds",
+						"image",
+						"random",
+						"{{randomNumber}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "By breed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.keys(response.json().message);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/images",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"images"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Random image by breed",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.keys(response.json().message);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/images/random",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"images",
+						"random"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Multiple random images by breed",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"randomNumber\", (pm.variables.replaceIn('{{$randomInt}}')) % 51);\r",
+							"\r",
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.keys(response.json().message);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/images/random/{{randomNumber}}",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"images",
+						"random",
+						"{{randomNumber}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "All sub-breeds",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.keys(response.json().message);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/list",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "All sub-breed images",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.entries(response.json().message);\r",
+							"    array = array.filter((x) => x[1].length > 0);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    let j = Math.floor(Math.random() * array[i][1].length);\r",
+							"    pm.collectionVariables.set('randomSubBreed', array[i][1][j]);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i][0]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/{{randomSubBreed}}/images",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"{{randomSubBreed}}",
+						"images"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Random sub-breed image",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.entries(response.json().message);\r",
+							"    array = array.filter((x) => x[1].length > 0);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    let j = Math.floor(Math.random() * array[i][1].length);\r",
+							"    pm.collectionVariables.set('randomSubBreed', array[i][1][j]);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i][0]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/{{randomSubBreed}}/images/random",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"{{randomSubBreed}}",
+						"images",
+						"random"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Multiple random images by sub-breed",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
+							"    let array = Object.entries(response.json().message);\r",
+							"    array = array.filter((x) => x[1].length > 0);\r",
+							"    let i = Math.floor(Math.random() * array.length);\r",
+							"    let j = Math.floor(Math.random() * array[i][1].length);\r",
+							"    pm.collectionVariables.set('randomSubBreed', array[i][1][j]);\r",
+							"    pm.collectionVariables.set(\"randomBreed\", array[i][0]);\r",
+							"    pm.collectionVariables.set(\"randomNumber\", (pm.variables.replaceIn('{{$randomInt}}')) % array[i][1][j].length);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dog.ceo/api/breed/{{randomBreed}}/{{randomSubBreed}}/images/random/{{randomNumber}}",
+					"protocol": "https",
+					"host": [
+						"dog",
+						"ceo"
+					],
+					"path": [
+						"api",
+						"breed",
+						"{{randomBreed}}",
+						"{{randomSubBreed}}",
+						"images",
+						"random",
+						"{{randomNumber}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Status code is 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "randomNumber",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randomBreed",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randomSubBreed",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
