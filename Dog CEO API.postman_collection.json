@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "ab6ebba0-6069-4a0b-88c2-b43c17d9cd52",
 		"name": "Dog CEO API",
-		"description": "Documentation: [https://dog.ceo/dog-api/documentation/](https://dog.ceo/dog-api/documentation/)\n\nA collection veryfing every endpoint from Dog CEO API. Currently testing mostly responses statuses codes. Coming with pre-request scripts and collection variables that allow to randomize requests.\n\nPotential issues:\n\n- in the last request randomNumber might ocasionally roll 0 and in such case always a single image from rolled sub-breed will be presented. Such case is not specified in the documentation, therefore I'm unable to say if it's a bug or a feature.",
+		"description": "Documentation: [https://dog.ceo/dog-api/documentation/](https://dog.ceo/dog-api/documentation/)\n\nA collection verifing every endpoint from Dog CEO API. Comes with pre-request scripts and collection variables that allow to randomize requests. Testing responses' status codes and correctness of received data against requests' parameters.\n\nPotential issues:\n\n- sometimes in requests that generate multiple random images the variable randomNumber might occasionally roll 0 and in such cases a single image will be presented. This situation is not specified in the documentation, therefore I'm unable to say if it's a bug or a feature.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "22478116"
 	},
@@ -80,7 +80,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.collectionVariables.set(\"randomNumber\", (pm.variables.replaceIn('{{$randomInt}}')) % 51);"
+							"// Because this request returns max. 50 images (as stated in the documentation), we use % 50 and + 1 to generate a number between 1 and 50. We exclude 0 because in such case a single image will be presented. Unable to say if it's a bug or a feature.\r",
+							"pm.collectionVariables.set(\"randomNumber\", ((pm.variables.replaceIn('{{$randomInt}}')) % 50 ) + 1);"
 						],
 						"type": "text/javascript"
 					}
@@ -89,7 +90,13 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							""
+							"let randomNumber = pm.collectionVariables.get(\"randomNumber\");\r",
+							"\r",
+							"// Checks if the number of images returned is equal to randomNumber generated in pre-request script.\r",
+							"pm.test(\"Number of images in response = randomNumber\", function () {\r",
+							"    let imagesNumber = pm.response.json().message;\r",
+							"    pm.expect(imagesNumber.length).to.eql(randomNumber);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -123,7 +130,12 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							""
+							"let randomBreed = pm.collectionVariables.get(\"randomBreed\");\r",
+							"\r",
+							"// Checks if images returned are of the randomBreed generated in pre-request script. Searches by the name of selected breed because the response's structure provides information about breed in every image URL.\r",
+							"pm.test(\"Breed in response = randomBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomBreed);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -132,13 +144,15 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.keys(response.json().message);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"    // Extracts breeds from a response and puts them into the array.\r",
+							"    let dogs = Object.keys(response.json().message);\r",
+							"    // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"    // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed]);\r",
 							"});\r",
-							"\r",
-							"\r",
 							""
 						],
 						"type": "text/javascript"
@@ -172,12 +186,30 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.keys(response.json().message);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"        // Extracts breeds from a response and puts them into the array.\r",
+							"    let dogs = Object.keys(response.json().message);\r",
+							"        // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"        // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed]);\r",
 							"});\r",
 							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let randomBreed = pm.collectionVariables.get(\"randomBreed\");\r",
+							"\r",
+							"// Checks if images returned are of the randomBreed generated in pre-request script. Searches by the name of selected breed because the response's structure provides information about breed in every image URL.\r",
+							"pm.test(\"Breed in response = randomBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomBreed);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -211,12 +243,23 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.collectionVariables.set(\"randomNumber\", (pm.variables.replaceIn('{{$randomInt}}')) % 51);\r",
-							"\r",
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.keys(response.json().message);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"    // Extracts breeds from a response and puts them into the array.\r",
+							"    let dogs = Object.keys(response.json().message);\r",
+							"    // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"    // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed]);\r",
+							"    // Sends a request listing all images of previously rolled breed.\r",
+							"    pm.sendRequest(\"https://dog.ceo/api/breed/\" + dogs[breed] + \"/images\", function (err, response) {\r",
+							"        // Puts all the images from a response into the array.\r",
+							"        let images = Object.entries(response.json().message);\r",
+							"        // Generates a random integer up to a total number of images. \r",
+							"        let image = Math.floor(Math.random() * images.length);\r",
+							"        // Assings generated number to the randomNumber variable.\r",
+							"        pm.collectionVariables.set(\"randomNumber\", (image));\r",
+							"    });\r",
 							"});"
 						],
 						"type": "text/javascript"
@@ -226,7 +269,19 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							""
+							"let randomBreed = pm.collectionVariables.get(\"randomBreed\");\r",
+							"let randomNumber = pm.collectionVariables.get(\"randomNumber\");\r",
+							"\r",
+							"// Checks if number of images returned is equal randomNumber generated in pre-request script.\r",
+							"pm.test(\"Number of images in response = randomNumber\", function () {\r",
+							"    let imagesNumber = pm.response.json().message;\r",
+							"    pm.expect(imagesNumber.length).to.eql(randomNumber);\r",
+							"});\r",
+							"\r",
+							"// Checks if images returned are of the randomBreed generated in pre-request script. Searches by the name of selected breed because the response's structure provides information about breed in every image URL.\r",
+							"pm.test(\"Breed in response = randomBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomBreed);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -261,10 +316,14 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.keys(response.json().message);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i]);\r",
+							"    // Extracts breeds from a response and puts them into the array.\r",
+							"    let dogs = Object.keys(response.json().message);\r",
+							"    // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"    // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed]);\r",
 							"});"
 						],
 						"type": "text/javascript"
@@ -307,15 +366,42 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.entries(response.json().message);\r",
-							"    array = array.filter((x) => x[1].length > 0);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    let j = Math.floor(Math.random() * array[i][1].length);\r",
-							"    pm.collectionVariables.set('randomSubBreed', array[i][1][j]);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i][0]);\r",
+							"    // Puts breeds together with sub-breeds from a response into the array.\r",
+							"    let dogs = Object.entries(response.json().message);\r",
+							"    // Filters off breeds that don't have any sub-breeds listed.\r",
+							"    dogs = dogs.filter((x) => x[1].length > 0);\r",
+							"    // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"    // Generates a random integer up to a total number of sub-breeds.\r",
+							"    let subBreed = Math.floor(Math.random() * dogs[breed][1].length);\r",
+							"    // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed][0]);\r",
+							"    // Assings a sub-breed from previously generated position to the randomSubBreed variable.\r",
+							"    pm.collectionVariables.set('randomSubBreed', dogs[breed][1][subBreed]);\r",
 							"});\r",
 							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let randomBreed = pm.collectionVariables.get(\"randomBreed\");\r",
+							"let randomSubBreed = pm.collectionVariables.get(\"randomSubBreed\");\r",
+							"\r",
+							"// Checks if images returned are of the randomBreed generated in pre-request script. Searches by the name of selected breed because the response's structure provides information about breed in every image URL.\r",
+							"pm.test(\"Breed in response = randomBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomBreed);\r",
+							"});\r",
+							"\r",
+							"// Checks if images returned are of the randomSubBreed generated in pre-request script. Searches by the name of selected sub-breed because the response's structure provides information about sub-breed in every image URL.\r",
+							"pm.test(\"Subreed in response = randomSubBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomSubBreed);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -349,15 +435,21 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.entries(response.json().message);\r",
-							"    array = array.filter((x) => x[1].length > 0);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    let j = Math.floor(Math.random() * array[i][1].length);\r",
-							"    pm.collectionVariables.set('randomSubBreed', array[i][1][j]);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i][0]);\r",
-							"});\r",
-							""
+							"    // Puts breeds together with sub-breeds from a response into the array.\r",
+							"    let dogs = Object.entries(response.json().message);\r",
+							"    // Filters off breeds that don't have any sub-breeds listed.\r",
+							"    dogs = dogs.filter((x) => x[1].length > 0);\r",
+							"    // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"    // Generates a random integer up to a total number of sub-breeds.\r",
+							"    let subBreed = Math.floor(Math.random() * dogs[breed][1].length);\r",
+							"    // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed][0]);\r",
+							"    // Assings a sub-breed from previously generated position to the randomSubBreed variable.\r",
+							"    pm.collectionVariables.set('randomSubBreed', dogs[breed][1][subBreed]);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -366,7 +458,18 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							""
+							"let randomBreed = pm.collectionVariables.get(\"randomBreed\");\r",
+							"let randomSubBreed = pm.collectionVariables.get(\"randomSubBreed\");\r",
+							"\r",
+							"// Checks if images returned are of the randomBreed generated in pre-request script. Searches by the name of selected breed because the response's structure provides information about breed in every image URL.\r",
+							"pm.test(\"Breed in response = randomBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomBreed);\r",
+							"});\r",
+							"\r",
+							"// Checks if images returned are of the randomSubBreed generated in pre-request script. Searches by the name of selected sub-breed because the response's structure provides information about sub-breed in every image URL.\r",
+							"pm.test(\"Subreed in response = randomSubBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomSubBreed);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -401,14 +504,29 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"// Sends a request listing all of breeds and sub-breeds.\r",
 							"pm.sendRequest(\"https://dog.ceo/api/breeds/list/all\", function (err, response) {\r",
-							"    let array = Object.entries(response.json().message);\r",
-							"    array = array.filter((x) => x[1].length > 0);\r",
-							"    let i = Math.floor(Math.random() * array.length);\r",
-							"    let j = Math.floor(Math.random() * array[i][1].length);\r",
-							"    pm.collectionVariables.set('randomSubBreed', array[i][1][j]);\r",
-							"    pm.collectionVariables.set(\"randomBreed\", array[i][0]);\r",
-							"    pm.collectionVariables.set(\"randomNumber\", (pm.variables.replaceIn('{{$randomInt}}')) % array[i][1][j].length);\r",
+							"    // Puts breeds together with sub-breeds from a response into the array.\r",
+							"    let dogs = Object.entries(response.json().message);\r",
+							"    // Filters off breeds that don't have any sub-breeds listed.\r",
+							"    dogs = dogs.filter((x) => x[1].length > 0);\r",
+							"    // Generates a random integer up to a total number of breeds.\r",
+							"    let breed = Math.floor(Math.random() * dogs.length);\r",
+							"    // Generates a random integer up to a total number of sub-breeds.\r",
+							"    let subBreed = Math.floor(Math.random() * dogs[breed][1].length);\r",
+							"    // Assings a breed from previously generated position to the randomBreed variable.\r",
+							"    pm.collectionVariables.set(\"randomBreed\", dogs[breed][0]);\r",
+							"    // Assings a sub-breed from previously generated position to the randomSubBreed variable.\r",
+							"    pm.collectionVariables.set('randomSubBreed', dogs[breed][1][subBreed]);\r",
+							"    // Sends a request listing all images of previously rolled breed and sub-breed.\r",
+							"    pm.sendRequest(\"https://dog.ceo/api/breed/\" + dogs[breed][0] + \"/\" + dogs[breed][1][subBreed] + \"/images\", function (err, response) {\r",
+							"        // Puts all the images from a response into the array.\r",
+							"        let images = Object.entries(response.json().message);\r",
+							"        // Generates a random integer up to a total number of images.\r",
+							"        let image = Math.floor(Math.random() * images.length);\r",
+							"        // Assings generated number to the randomNumber variable.\r",
+							"        pm.collectionVariables.set(\"randomNumber\", image);\r",
+							"    });\r",
 							"});"
 						],
 						"type": "text/javascript"
@@ -418,7 +536,25 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							""
+							"let randomBreed = pm.collectionVariables.get(\"randomBreed\");\r",
+							"let randomSubBreed = pm.collectionVariables.get(\"randomSubBreed\");\r",
+							"let randomNumber = pm.collectionVariables.get(\"randomNumber\");\r",
+							"\r",
+							"// Checks if the number of images returned is equal randomNumber generated in pre-request script.\r",
+							"pm.test(\"Number of images in response = randomNumber\", function () {\r",
+							"    let imagesNumber = pm.response.json().message;\r",
+							"    pm.expect(imagesNumber.length).to.eql(randomNumber);\r",
+							"});\r",
+							"\r",
+							"// Checks if images returned are of the randomBreed generated in pre-request script. Searches by the name of selected breed because the response's structure provides information about breed in every image URL.\r",
+							"pm.test(\"Breed in response = randomBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomBreed);\r",
+							"});\r",
+							"\r",
+							"// Checks if images returned are of the randomSubBreed generated in pre-request script. Searches by the name of selected sub-breed because the response's structure provides information about sub-breed in every image URL.\r",
+							"pm.test(\"Subreed in response = randomSubBreed\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(randomSubBreed);\r",
+							"});"
 						],
 						"type": "text/javascript"
 					}
